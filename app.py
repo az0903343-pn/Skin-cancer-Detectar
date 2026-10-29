@@ -9,7 +9,7 @@ from PIL import Image
 st.set_page_config(page_title="Skin Cancer Detection", page_icon="🩺", layout="centered")
 
 st.title("🩺 Skin Cancer Detection using Deep Learning")
-st.write("Upload a clear image of the skin lesion to get an automated AI classification analysis.")
+st.write("Provide a clear image of the skin lesion via Upload or Live Camera for an automated AI analysis.")
 
 # Static classification label maps matching your HAM10000 data dictionary indices
 CLASS_LABELS = {
@@ -42,14 +42,26 @@ except Exception as e:
     model_loaded = False
 
 # ==========================================================
-# 3. USER IMAGE UPLOAD PROCESSING PIPELINE
+# 3. DUAL INPUT SELECTION (UPLOAD OR LIVE CAMERA ACCESS)
 # ==========================================================
-uploaded_file = st.file_uploader("Choose a skin lesion image file...", type=["jpg", "jpeg", "png"])
+# Let the user choose how they want to provide the skin lesion image
+input_mode = st.radio("Select Input Method:", ("Upload Image File", "Use Live Web Camera"))
 
-if uploaded_file is not None and model_loaded:
-    # Open and display the user input image frame
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Skin Sample Image.", use_container_width=True)
+raw_image_data = None
+
+if input_mode == "Upload Image File":
+    raw_image_data = st.file_uploader("Choose a skin lesion image file...", type=["jpg", "jpeg", "png"])
+else:
+    # Trigger the web browser native camera access interface feature directly
+    raw_image_data = st.camera_input("Position the skin lesion directly in front of the camera lens")
+
+# ==========================================================
+# 4. USER IMAGE UPLOAD PROCESSING PIPELINE
+# ==========================================================
+if raw_image_data is not None and model_loaded:
+    # Open the user input image frame safely using PIL wrapper
+    image = Image.open(raw_image_data)
+    st.image(image, caption="Target Skin Sample Image Selected.", use_container_width=True)
     
     st.write("⚙️ Processing image arrays and running AI diagnostic nodes...")
     
@@ -68,23 +80,22 @@ if uploaded_file is not None and model_loaded:
     # Extract prediction probability output vector distribution arrays
     prediction_scores = interpreter.get_tensor(output_details['index'])
     predicted_class_idx = int(np.argmax(prediction_scores))
-    confidence_score = float(prediction_scores[0][predicted_class_idx] * 100)
+    confidence_score = float(prediction_scores[predicted_class_idx] * 100)
     
     # ==========================================================
-    # 4. DISPLAY REAL-TIME OUTPUT REPORT
+    # 5. DISPLAY REAL-TIME OUTPUT REPORT
     # ==========================================================
     st.markdown("---")
     st.subheader("📊 System Diagnostic Assessment Result:")
     
-    # NEW LOGIC WITHOUT BRACKETS TO PREVENT SYNTAX CODES DELETION
-    # 1 is bcc (Malignant), 4 is mel (Malignant)
+    # Check if malignancy profiles match bcc (1) or mel (4) categories
     is_malignant = False
     if predicted_class_idx == 1:
         is_malignant = True
     if predicted_class_idx == 4:
         is_malignant = True
 
-    if is_malignant == True:
+    if is_malignant:
         st.error(f"**Predicted Category:** {CLASS_LABELS[predicted_class_idx]}")
         st.warning("⚠️ Critical Notice: This signature exhibits malignant profiles. Please consult an expert dermatologist urgently.")
     else:
