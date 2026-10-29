@@ -2,7 +2,6 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-import requests
 import os
 
 # ==========================================================
@@ -25,44 +24,33 @@ CLASS_LABELS = {
 }
 
 # ==========================================================
-# 2. RUN COMPRESSED TFLITE MODEL INFERENCE ENGINE (SECURE STREAM)
+# 2. RUN COMPRESSED TFLITE MODEL INFERENCE ENGINE
 # ==========================================================
 @st.cache_resource
-def load_tflite_model_securely():
+def load_tflite_model_safely():
     local_path = "skin_cancer_cnn_model_compressed.tflite"
     
-    # Fallback Mechanism: If local file read fails due to compression pointer corruptions,
-    # download raw bytes directly from GitHub raw content pipeline recursively into system memory
-    if not os.path.exists(local_path) or os.path.getsize(local_path) < 1000:
-        st.warning("🔄 Resolving empty allocation bounds... Syncing model stream from storage registry...")
-        # NOTE: Dynamically tracks the open public repository layout
-        github_raw_url = "https://githubusercontent.com"
-        try:
-            response = requests.get(github_raw_url, timeout=30)
-            if response.status_code == 200:
-                with open(local_path, "wb") as f:
-                    f.write(response.content)
-            else:
-                # Secondary absolute relative route if the user changed repo naming casings
-                github_raw_url_alt = "https://githubusercontent.com"
-                response = requests.get(github_raw_url_alt, timeout=30)
-                with open(local_path, "wb") as f:
-                    f.write(response.content)
-        except Exception as e:
-            st.error(f"Network bridge stream failed: {e}")
-
-    # Initialize standard interpreter layers
+    # Check if file exists and verify if it's a fake GitHub LFS pointer text file (usually < 1KB)
+    if os.path.exists(local_path):
+        file_size = os.path.getsize(local_path)
+        # If it's a small text file instead of actual binary model weights data
+        if file_size < 2000:
+            st.error("⚠️ GitHub uploaded file is an empty LFS Pointer instead of a raw binary asset.")
+            st.info("💡 **Quick Solution:** Please delete the 'skin_cancer_cnn_model_compressed.tflite' file from GitHub, click 'Add File' -> 'Upload Files', and upload the 12.44 MB file again WITHOUT using git bash/command line tools.")
+    
+    # Initialize standard interpreter layers natively
     interpreter = tf.lite.Interpreter(model_path=local_path)
     interpreter.allocate_tensors()
     return interpreter
 
 try:
-    interpreter = load_tflite_model_securely()
+    interpreter = load_tflite_model_safely()
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
     model_loaded = True
 except Exception as e:
-    st.error(f"System allocation breakdown. Please verify that 'skin_cancer_cnn_model_compressed.tflite' exists inside your GitHub files root: {e}")
+    st.error(f"System allocation breakdown. The current file content is empty or corrupted: {e}")
+    st.info("🔄 Re-uploading the 12.44MB model file directly via GitHub web browser dashboard will solve this permanently.")
     model_loaded = False
 
 # ==========================================================
