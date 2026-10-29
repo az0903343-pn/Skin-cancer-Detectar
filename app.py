@@ -28,15 +28,14 @@ CLASS_LABELS = {
 # ==========================================================
 @st.cache_resource
 def load_tflite_model_safely():
-    local_path = "skin_cancer_cnn_model_compressed.tflite"
+    # UPDATE: Matched the exact file name present in your GitHub repository screenshot
+    local_path = "downloadable_model.tflite"
     
-    # Check if file exists and verify if it's a fake GitHub LFS pointer text file (usually < 1KB)
     if os.path.exists(local_path):
         file_size = os.path.getsize(local_path)
-        # If it's a small text file instead of actual binary model weights data
         if file_size < 2000:
             st.error("⚠️ GitHub uploaded file is an empty LFS Pointer instead of a raw binary asset.")
-            st.info("💡 **Quick Solution:** Please delete the 'skin_cancer_cnn_model_compressed.tflite' file from GitHub, click 'Add File' -> 'Upload Files', and upload the 12.44 MB file again WITHOUT using git bash/command line tools.")
+            st.info("💡 Please delete 'downloadable_model.tflite' from GitHub, click 'Add File' -> 'Upload Files', and upload the 12.44 MB file again from your browser dashboard.")
     
     # Initialize standard interpreter layers natively
     interpreter = tf.lite.Interpreter(model_path=local_path)
@@ -50,7 +49,6 @@ try:
     model_loaded = True
 except Exception as e:
     st.error(f"System allocation breakdown. The current file content is empty or corrupted: {e}")
-    st.info("🔄 Re-uploading the 12.44MB model file directly via GitHub web browser dashboard will solve this permanently.")
     model_loaded = False
 
 # ==========================================================
