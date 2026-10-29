@@ -67,8 +67,8 @@ if uploaded_file is not None and model_loaded:
     
     # Extract prediction probability output vector distribution arrays
     prediction_scores = interpreter.get_tensor(output_details['index'])
-    predicted_class_idx = np.argmax(prediction_scores)
-    confidence_score = prediction_scores[predicted_class_idx] * 100
+    predicted_class_idx = int(np.argmax(prediction_scores))
+    confidence_score = float(prediction_scores[0][predicted_class_idx] * 100)
     
     # ==========================================================
     # 4. DISPLAY REAL-TIME OUTPUT REPORT
@@ -76,8 +76,15 @@ if uploaded_file is not None and model_loaded:
     st.markdown("---")
     st.subheader("📊 System Diagnostic Assessment Result:")
     
-    # FIX: Explicit list [1, 4] added here for bcc and mel checking
-    if predicted_class_idx in:
+    # NEW LOGIC WITHOUT BRACKETS TO PREVENT SYNTAX CODES DELETION
+    # 1 is bcc (Malignant), 4 is mel (Malignant)
+    is_malignant = False
+    if predicted_class_idx == 1:
+        is_malignant = True
+    if predicted_class_idx == 4:
+        is_malignant = True
+
+    if is_malignant == True:
         st.error(f"**Predicted Category:** {CLASS_LABELS[predicted_class_idx]}")
         st.warning("⚠️ Critical Notice: This signature exhibits malignant profiles. Please consult an expert dermatologist urgently.")
     else:
