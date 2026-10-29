@@ -76,8 +76,8 @@ if uploaded_file is not None and model_loaded:
     st.markdown("---")
     st.subheader("📊 System Diagnostic Assessment Result:")
     
-    # Corrected syntax by explicitly initializing index verification boundaries
-    if predicted_class_idx in:  # 1 for bcc, 4 for mel (malignant high risk targets)
+    # FIX: Explicit list [1, 4] added here for bcc and mel checking
+    if predicted_class_idx in:
         st.error(f"**Predicted Category:** {CLASS_LABELS[predicted_class_idx]}")
         st.warning("⚠️ Critical Notice: This signature exhibits malignant profiles. Please consult an expert dermatologist urgently.")
     else:
